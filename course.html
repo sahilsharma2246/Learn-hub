@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details</title>
+        <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <header class="header">
+
+<div class="logo">LearnHub</div>
+
+<nav>
+<a href="index.html">Home</a>
+<a href="dashboard.html">Dashboard</a>
+<a href="login.html">Login</a>
+</nav>
+
+</header>
+    <h1 id="title"></h1>
+<p id="desc"></p>
+
+<h3>Comments</h3>
+
+<input id="commentInput" placeholder="Write comment">
+<button onclick="addComment()">Post</button>
+
+<div id="comments"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

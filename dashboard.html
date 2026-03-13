@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+        <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<header class="header">
+
+<div class="logo">LearnHub</div>
+
+<nav>
+<a href="index.html">Home</a>
+<a href="dashboard.html">Dashboard</a>
+<a href="login.html">Login</a>
+</nav>
+
+</header>
+    <h1>Upload Course</h1>
+
+<input id="title" placeholder="Course Title">
+<textarea id="desc" placeholder="Course Description"></textarea>
+
+<button onclick="uploadCourse()">Upload</button>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="script.js"></script>
+    
+</body>
+</html>
