@@ -1,117 +1,204 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyAC42sirek7m-9wnh-7FsX2ow25KFRTjVA",
+    apiKey: "AIzaSyAC42sirek7m-9wnh-7FsX2ow25KFRTjVA",
     authDomain: "react-36e2c.firebaseapp.com",
-    
+    databaseURL: "https://react-36e2c-default-rtdb.firebaseio.com",
     projectId: "react-36e2c",
+    storageBucket: "react-36e2c.firebasestorage.app",
+    messagingSenderId: "995727795506",
+    appId: "1:995727795506:web:420373ff0c0057b7a9a32b"
 };
 
 firebase.initializeApp(firebaseConfig);
 
-const db = firebase.firestore();
-const auth = firebase.auth();
+const loginDB = firebase.database().ref("Login");
+const courseDB = firebase.database().ref("Courses");
 
-function register(){
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let adminKey = localStorage.getItem("adminKey");
+let updateKey = null;
 
-let email=document.getElementById("email").value;
-let password=document.getElementById("password").value;
+function login() {
+  let email = document.getElementById("email").value;
+  let password = document.getElementById("password").value;
 
-auth.createUserWithEmailAndPassword(email,password)
-.then(()=>alert("Registered"));
-
+  loginDB.once("value", snapshot => {
+    let data = snapshot.val();
+    for (let key in data) {
+      if (data[key].email === email && data[key].password === password) {
+        loginDB.child(key).update({ status: "1" });
+        localStorage.setItem("adminKey", key);
+        window.location = "dashboard.html";
+        return;
+      }
+    }
+    alert("Invalid Email or Password");
+  });
 }
 
-function login(){
-
-let email=document.getElementById("email").value;
-let password=document.getElementById("password").value;
-
-auth.signInWithEmailAndPassword(email,password)
-.then(()=>window.location="dashboard.html");
-
+function logout() {
+  let key = localStorage.getItem("adminKey");
+  if (key) loginDB.child(key).update({ status: "0" });
+  localStorage.removeItem("adminKey");
+  window.location = "login.html";
 }
 
-function uploadCourse(){
-
-let title=document.getElementById("title").value;
-let desc=document.getElementById("desc").value;
-
-db.collection("courses").add({
-title:title,
-desc:desc
-});
-
-alert("Course uploaded");
-
+function checkAdmin() {
+  let key = localStorage.getItem("adminKey");
+  if (!key) window.location = "login.html";
+  loginDB.child(key).once("value", snapshot => {
+    let data = snapshot.val();
+    if (!data || data.status != "1") window.location = "login.html";
+  });
 }
 
-if(document.getElementById("courses")){
+function addCourse() {
+  let title = document.getElementById("title").value;
+  let price = document.getElementById("price").value;
+  let image = document.getElementById("image").value;
+  let duration = document.getElementById("duration").value;
+  let description = document.getElementById("description").value;
 
-db.collection("courses").onSnapshot(snapshot=>{
+  if (!title || !price || !image || !duration || !description) {
+    alert("Please fill all fields!");
+    return;
+  }
 
-let html="";
+  let courseData = { title, price, image, duration, description };
 
-snapshot.forEach(doc=>{
+  if (updateKey) {
+    courseDB.child(updateKey).update(courseData);
+    alert("Course Updated");
+    updateKey = null;
+  } else {
+    courseDB.push(courseData);
+    alert("Course Added");
+  }
 
-let data=doc.data();
-
-html+=`
-<div class="course">
-<h3>${data.title}</h3>
-<p>${data.desc}</p>
-<a href="course.html?id=${doc.id}">Open</a>
-</div>
-`;
-
-});
-
-document.getElementById("courses").innerHTML=html;
-
-});
-
+  displayDashboardCourses();
+  displayCourses();
 }
 
-const params = new URLSearchParams(window.location.search);
-const courseId = params.get("id");
-
-if(courseId){
-
-db.collection("courses").doc(courseId).get().then(doc=>{
-
-let data=doc.data();
-
-document.getElementById("title").innerText=data.title;
-document.getElementById("desc").innerText=data.desc;
-
-});
-
+function deleteCourse(key){
+  if(!adminKey) {
+    alert("Only admin can delete courses");
+    return;
+  }
+  if(confirm("Delete this course?")) courseDB.child(key).remove();
 }
 
-function addComment(){
-
-let text=document.getElementById("commentInput").value;
-
-db.collection("comments").add({
-course:courseId,
-text:text
-});
-
+function editCourse(key,title,price,image,duration,description){
+  document.getElementById("title").value = title;
+  document.getElementById("price").value = price;
+  document.getElementById("image").value = image;
+  document.getElementById("duration").value = duration;
+  document.getElementById("description").value = description;
+  updateKey = key;
 }
 
-if(document.getElementById("comments")){
+function displayCourses() {
+  let container = document.getElementById("courses");
+  if (!container) return;
 
-db.collection("comments").where("course","==",courseId)
-.onSnapshot(snapshot=>{
-
-let html="";
-
-snapshot.forEach(doc=>{
-
-html+=`<div class="comment">${doc.data().text}</div>`;
-
-});
-
-document.getElementById("comments").innerHTML=html;
-
-});
-
+  courseDB.on("value", snapshot => {
+    container.innerHTML = "";
+    snapshot.forEach(data => {
+      let course = data.val();
+      container.innerHTML += `
+        <div class="course" onclick='showCourseDetails(${JSON.stringify(course)})'>
+          <div class="course-img"><img src="${course.image}"></div>
+          <h3>${course.title}</h3>
+          <p>₹${course.price}</p>
+          <button onclick='addToCart(${JSON.stringify(course)})'>Add To Cart</button>
+        </div>
+      `;
+    });
+  });
 }
+
+function displayDashboardCourses(){
+  let table = document.getElementById("courseTable");
+  if(!table) return;
+
+  courseDB.on("value", snapshot => {
+    table.innerHTML = "";
+    let sno = 1;
+    snapshot.forEach(data => {
+      let course = data.val();
+      let key = data.key;
+      table.innerHTML += `
+        <tr>
+          <td>${sno++}</td>
+          <td>${course.title}</td>
+          <td>₹${course.price}</td>
+          <td><img src="${course.image}"></td>
+          <td>${course.duration}</td>
+          <td>
+            <button onclick="editCourse('${key}','${course.title}','${course.price}','${course.image}','${course.duration}','${course.description}')">Update</button>
+            <button onclick="deleteCourse('${key}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+  });
+}
+
+function searchCourse(){
+  let input = document.getElementById("search").value.toLowerCase();
+  let courses = document.querySelectorAll(".course");
+  courses.forEach(course => {
+    let title = course.querySelector("h3").innerText.toLowerCase();
+    course.style.display = title.includes(input) ? "block" : "none";
+  });
+}
+
+function addToCart(course) {
+  let cartData = JSON.parse(localStorage.getItem("cart")) || [];
+  cartData.push(course);
+  localStorage.setItem("cart", JSON.stringify(cartData));
+  alert("Course Added To Cart");
+  displayCart();
+}
+
+function removeFromCart(index){
+  let cartData = JSON.parse(localStorage.getItem("cart")) || [];
+  cartData.splice(index,1);
+  localStorage.setItem("cart", JSON.stringify(cartData));
+  displayCart();
+}
+
+function displayCart() {
+  let container = document.getElementById("cartItems");
+  let totalBox = document.getElementById("total");
+  if (!container) return;
+
+  let cartData = JSON.parse(localStorage.getItem("cart")) || [];
+  container.innerHTML = "";
+  let total = 0;
+
+  cartData.forEach((course,index) => {
+    total += Number(course.price);
+    container.innerHTML += `
+      <div class="cart-row">
+        <div class="cart-left">
+          <img src="${course.image}">
+          <div class="course-details">
+            <h3>${course.title}</h3>
+            <p>${course.duration}</p>
+          </div>
+        </div>
+        <div class="cart-price">₹${course.price}</div>
+        <button class="cart-remove" onclick="removeFromCart(${index})">Remove</button>
+      </div>
+    `;
+  });
+
+  if(totalBox) totalBox.innerHTML = "Total: ₹" + total;
+}
+
+function showCourseDetails(course){
+  alert(`Title: ${course.title}\nPrice: ₹${course.price}\nDuration: ${course.duration}\nDescription: ${course.description}`);
+}
+
+displayCourses();
+displayCart();
+displayDashboardCourses();

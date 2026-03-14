@@ -1,34 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-        <link rel="stylesheet" href="style.css">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
+
+<body onload="checkAdmin()">
+
 <header class="header">
+  <div class="logo">🎓 OnlineCourse</div>
 
-<div class="logo">LearnHub</div>
-
-<nav>
-<a href="index.html">Home</a>
-<a href="dashboard.html">Dashboard</a>
-<a href="login.html">Login</a>
-</nav>
-
+  <nav class="nav">
+    <a href="index.html">Courses</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </nav>
 </header>
-    <h1>Upload Course</h1>
 
-<input id="title" placeholder="Course Title">
-<textarea id="desc" placeholder="Course Description"></textarea>
 
-<button onclick="uploadCourse()">Upload</button>
+<div class="dashboard">
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <h2>Add / Update Course</h2>
+
+  <input id="title" placeholder="Course Title">
+  <input id="price" placeholder="Price">
+  <input id="image" placeholder="Image URL">
+  <input id="duration" placeholder="Duration (e.g., 10 hours)">
+  <textarea id="description" placeholder="Course Description" rows="4"></textarea>
+
+  <button onclick="addCourse()">Save Course</button>
+
+</div>
+
+
+<div style="padding:40px">
+
+  <h2 style="text-align:center;margin-bottom:20px;">All Courses</h2>
+
+  <table class="course-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Price</th>
+        <th>Image</th>
+        <th>Duration</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody id="courseTable"></tbody>
+
+  </table>
+
+</div>
+
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script src="script.js"></script>
-    
+
 </body>
 </html>
